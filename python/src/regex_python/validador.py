@@ -36,6 +36,8 @@ def _validar_por_tipo(ocorrencia: OcorrenciaExtraida) -> tuple[bool, str, str]:
         return _validar_hora(ocorrencia.valor)
     if ocorrencia.tipo == TipoEntidade.DATA_HORA:
         return _validar_data_hora(ocorrencia.valor)
+    if ocorrencia.tipo == TipoEntidade.CPF:
+        return _validar_cpf(ocorrencia.valor)
 
     return True, "", ocorrencia.valor
 
@@ -73,6 +75,24 @@ def _validar_data_hora(valor: str) -> tuple[bool, str, str]:
         if data_valida and hora_valida:
             return True, "", f"{data_normalizada} {hora_normalizada}"
     except ValueError:
-        return False, "data_hora invalida", valor
-    else:
-        return False, "data_hora invalida", valor
+        pass
+    return False, "data_hora invalida", valor
+
+
+def _validar_cpf(valor: str) -> tuple[bool, str, str]:
+    def calcular_digito(cpf_parcial: str) -> int:
+        soma = sum(
+            int(digito) * peso
+            for digito, peso in zip(cpf_parcial, range(len(cpf_parcial) + 1, 1, -1))
+        )
+        resto = soma % 11
+        return 0 if resto < 2 else 11 - resto
+
+    cpf = "".join(filter(str.isdigit, valor))
+    if len(cpf) != 11 or len(set(cpf)) == 1:
+        return False, "cpf invalido", valor
+    digito1 = calcular_digito(cpf[:9])
+    digito2 = calcular_digito(cpf[:10])
+    if int(cpf[9]) == digito1 and int(cpf[10]) == digito2:
+        return True, "", f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
+    return False, "cpf invalido", valor
