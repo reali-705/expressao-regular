@@ -35,4 +35,4 @@ def _incrementar(
     dados: dict[Chave, int],
     chave: Chave,
 ) -> None:
-    dados[chave] += dados.get(chave, 0) + 1
+    dados[chave] = dados.get(chave, 0) + 1

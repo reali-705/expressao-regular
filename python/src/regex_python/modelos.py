@@ -16,6 +16,10 @@ class TipoEntidade(str, Enum):
     NOME_PROPRIO = "nome_proprio"
 
 
+def _mapa_tipos_zerado() -> dict[TipoEntidade, int]:
+    return {tipo: 0 for tipo in TipoEntidade}
+
+
 @dataclass(slots=True)
 class ArquivoLido:
     caminho: str
@@ -33,7 +37,7 @@ class OcorrenciaExtraida:
     contexto: str
 
 
-@dataclass(slots=True)  
+@dataclass(slots=True)
 class OcorrenciaValidada(OcorrenciaExtraida):
     valido: bool
     motivo: str = ""
@@ -45,11 +49,11 @@ class Estatisticas:
     total_ocorrencias: int = 0
     total_validas: int = 0
     total_invalidas: int = 0
-    por_tipo: dict[TipoEntidade, int] = field(default_factory=dict[TipoEntidade, int])
+    por_tipo: dict[TipoEntidade, int] = field(default_factory=_mapa_tipos_zerado)
     validas_por_tipo: dict[TipoEntidade, int] = field(
-        default_factory=dict[TipoEntidade, int]
+        default_factory=_mapa_tipos_zerado
     )
     invalidas_por_tipo: dict[TipoEntidade, int] = field(
-        default_factory=dict[TipoEntidade, int]
+        default_factory=_mapa_tipos_zerado
     )
     por_arquivo: dict[str, int] = field(default_factory=dict[str, int])

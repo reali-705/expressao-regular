@@ -44,7 +44,7 @@ def _validar_data(valor: str) -> tuple[bool, str, str]:
     try:
         dia, mes, ano = (int(parte) for parte in valor.split("/"))
         if ano < 100:
-            ano += 2000 if ano <= 68 else 1900
+            ano += 2000 if ano <= 50 else 1900
         data = date(ano, mes, dia)
         return True, "", data.isoformat()
     except (TypeError, ValueError):
@@ -52,10 +52,15 @@ def _validar_data(valor: str) -> tuple[bool, str, str]:
 
 
 def _validar_hora(valor: str) -> tuple[bool, str, str]:
+    partes = valor.split(":")
+    if len(partes) == 2:
+        partes.append("00")
+    elif len(partes) != 3:
+        return False, "hora invalida", valor
     try:
-        hora, minuto = (int(parte) for parte in valor.split(":"))
-        horario = time(hora, minuto)
-        return True, "", horario.strftime("%H:%M")
+        hora, minuto, segundo = map(int, partes)
+        horario = time(hora, minuto, segundo)
+        return True, "", horario.strftime("%H:%M:%S")
     except (TypeError, ValueError):
         return False, "hora invalida", valor
 
@@ -65,8 +70,9 @@ def _validar_data_hora(valor: str) -> tuple[bool, str, str]:
         valor_data, valor_hora = valor.split(" ", maxsplit=1)
         data_valida, _, data_normalizada = _validar_data(valor_data)
         hora_valida, _, hora_normalizada = _validar_hora(valor_hora)
-        if not data_valida or not hora_valida:
-            return False, "data_hora invalida", valor
-        return True, "", f"{data_normalizada} {hora_normalizada}"
+        if data_valida and hora_valida:
+            return True, "", f"{data_normalizada} {hora_normalizada}"
     except ValueError:
+        return False, "data_hora invalida", valor
+    else:
         return False, "data_hora invalida", valor
