@@ -1,22 +1,24 @@
 # Regex Python Module
 
-Implementacao em Python do pipeline de extracao e validacao com expressoes regulares.
+Implementacao em Python do pipeline de extracao e validacao com expressoes
+regulares.
 
 Este README cobre apenas o escopo do modulo Python. A visao geral do projeto
 multi-linguagem esta no [README](../README.md) da raiz.
 
 ## Objetivo
 
-- Servir como base de referencia funcional do pipeline em Python.
-- Processar dados ruidosos e extrair entidades padronizadas.
-- Gerar saidas consistentes para futura comparacao com a implementacao em Go.
+- Extrair entidades de dados textuais com regex.
+- Validar regras semanticas apos a extracao.
+- Gerar arquivos de saida em JSON para analise posterior.
+- Medir tempo total e por etapa do pipeline.
 
 ## Requisitos
 
 - Python 3.12+
 - UV instalado no ambiente
 
-## Setup rapido
+## Execucao rapida
 
 1. Entrar na pasta do modulo:
 
@@ -30,44 +32,57 @@ multi-linguagem esta no [README](../README.md) da raiz.
     uv sync
     ```
 
-3. Executar o comando registrado no projeto:
+3. Executar o pipeline:
 
     ```bash
     uv run regex-python
     ```
 
-No estado atual, o comando imprime uma mensagem inicial de bootstrap.
+As saidas sao geradas em `../output/python`:
 
-## Estrutura atual
+- `arquivos_lidos.json`
+- `ocorrencias_validadas.json`
+- `estatisticas.json`
 
-- `pyproject.toml`: metadados do pacote e comando de entrada.
-- `src/regex_python/__init__.py`: funcao main inicial.
-- `uv.lock`: lockfile do ambiente.
+## Estrutura de diretorios e modulos
 
-## Proximos passos
+```text
+python/
+├─ pyproject.toml
+├─ uv.lock
+├─ README.md
+└─ src/
+    └─ regex_python/
+        ├─ __init__.py
+        ├─ modelos.py
+        ├─ leitor.py
+        ├─ extrator.py
+        ├─ padroes.py
+        ├─ validador.py
+        ├─ estatistica.py
+        └─ escritor.py
+```
 
-1. Criar modulo de leitura de arquivos em data.
-2. Implementar extratores regex por entidade (email, telefone, cpf, data, url, moeda, nome).
-3. Adicionar validacao estrutural de cada padrao.
-4. Escrever saidas em JSON e CSV dentro de output/python.
-5. Cobrir regras com testes automatizados.
+Resumo de cada modulo:
 
-## Comandos uteis
+- `__init__.py`: ponto de entrada do pipeline; orquestra leitura, extracao,
+  validacao, estatisticas, escrita de saidas e cronometra tempos por etapa.
+- `modelos.py`: modelos de dados (`dataclass`) e tipos centrais do dominio,
+  como `TipoEntidade`, ocorrencias e estatisticas.
+- `leitor.py`: leitura dos arquivos de entrada do diretorio de dados.
+- `extrator.py`: aplicacao dos padroes regex para gerar ocorrencias extraidas.
+- `padroes.py`: dicionario central de regex genericas usadas na extracao.
+- `validador.py`: regras semanticas por tipo (ex.: data, hora, data_hora, CPF).
+- `estatistica.py`: agregacao de contagens totais, por tipo, por arquivo e
+  campos de tempo acumulados.
+- `escritor.py`: escrita de saida em texto/JSON com normalizacao de tipos
+  Python para serializacao.
 
-- Rodar app:
+## Fluxo do pipeline
 
-  ```bash
-  uv run regex-python
-  ```
-
-- Adicionar dependencia:
-
-  ```bash
-  uv add nome-da-biblioteca
-  ```
-
-- Atualizar lockfile apos mudancas:
-
-  ```bash
-  uv lock
-  ```
+1. Le os arquivos de `../data`.
+2. Extrai ocorrencias com regex generica.
+3. Valida ocorrencias com regras especificas.
+4. Agrega estatisticas de qualidade e volume.
+5. Persiste resultados em JSON no diretorio de saida.
+6. Exibe resumo e tempos no terminal.
