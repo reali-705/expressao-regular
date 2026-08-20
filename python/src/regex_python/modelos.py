@@ -32,16 +32,11 @@ class OcorrenciaExtraida:
     valor: str
     arquivo: str
     linha: int
-    inicio: int
-    fim: int
-    contexto: str
 
 
 @dataclass(slots=True)
 class OcorrenciaValidada(OcorrenciaExtraida):
     valido: bool
-    motivo: str = ""
-    valor_normalizado: str = ""
 
 
 @dataclass(slots=True)
@@ -57,3 +52,9 @@ class Estatisticas:
         default_factory=_mapa_tipos_zerado
     )
     por_arquivo: dict[str, int] = field(default_factory=dict[str, int])
+    tempo_leitura: float = 0.0
+    tempo_extracao: float = 0.0
+    tempo_validacao: float = 0.0
+    tempo_estatisticas: float = 0.0
+    tempo_escrita: float = 0.0
+    tempo_total: float = 0.0

@@ -9,27 +9,19 @@ def validar_ocorrencias(
     ocorrencias: list[OcorrenciaExtraida],
 ) -> list[OcorrenciaValidada]:
     """Classifica ocorrências como válidas ou inválidas com regras iniciais."""
-    validadas: list[OcorrenciaValidada] = []
-    for ocorrencia in ocorrencias:
-        valido, motivo, valor_normalizado = _validar_por_tipo(ocorrencia)
-        validadas.append(
-            OcorrenciaValidada(
-                tipo=ocorrencia.tipo,
-                valor=ocorrencia.valor,
-                arquivo=ocorrencia.arquivo,
-                linha=ocorrencia.linha,
-                inicio=ocorrencia.inicio,
-                fim=ocorrencia.fim,
-                contexto=ocorrencia.contexto,
-                valido=valido,
-                motivo=motivo,
-                valor_normalizado=valor_normalizado,
-            )
+    return [
+        OcorrenciaValidada(
+            tipo=ocorrencia.tipo,
+            valor=ocorrencia.valor,
+            arquivo=ocorrencia.arquivo,
+            linha=ocorrencia.linha,
+            valido=_validar_por_tipo(ocorrencia),
         )
-    return validadas
+        for ocorrencia in ocorrencias
+    ]
 
 
-def _validar_por_tipo(ocorrencia: OcorrenciaExtraida) -> tuple[bool, str, str]:
+def _validar_por_tipo(ocorrencia: OcorrenciaExtraida) -> bool:
     if ocorrencia.tipo == TipoEntidade.DATA:
         return _validar_data(ocorrencia.valor)
     if ocorrencia.tipo == TipoEntidade.HORA:
@@ -39,47 +31,47 @@ def _validar_por_tipo(ocorrencia: OcorrenciaExtraida) -> tuple[bool, str, str]:
     if ocorrencia.tipo == TipoEntidade.CPF:
         return _validar_cpf(ocorrencia.valor)
 
-    return True, "", ocorrencia.valor
+    return True
 
 
-def _validar_data(valor: str) -> tuple[bool, str, str]:
+def _validar_data(valor: str) -> bool:
+    dia, mes, ano = (int(parte) for parte in valor.split("/"))
+    if ano < 100:
+        ano += 2000 if ano <= 50 else 1900
     try:
-        dia, mes, ano = (int(parte) for parte in valor.split("/"))
-        if ano < 100:
-            ano += 2000 if ano <= 50 else 1900
-        data = date(ano, mes, dia)
-        return True, "", data.isoformat()
-    except (TypeError, ValueError):
-        return False, "data invalida", valor
+        date(ano, mes, dia)
+    except ValueError:
+        return False
+    return True
 
 
-def _validar_hora(valor: str) -> tuple[bool, str, str]:
+def _validar_hora(valor: str) -> bool:
     partes = valor.split(":")
     if len(partes) == 2:
         partes.append("00")
     elif len(partes) != 3:
-        return False, "hora invalida", valor
+        return False
     try:
         hora, minuto, segundo = map(int, partes)
-        horario = time(hora, minuto, segundo)
-        return True, "", horario.strftime("%H:%M:%S")
+        time(hora, minuto, segundo)
     except (TypeError, ValueError):
-        return False, "hora invalida", valor
+        return False
+    return True
 
 
-def _validar_data_hora(valor: str) -> tuple[bool, str, str]:
+def _validar_data_hora(valor: str) -> bool:
     try:
         valor_data, valor_hora = valor.split(" ", maxsplit=1)
-        data_valida, _, data_normalizada = _validar_data(valor_data)
-        hora_valida, _, hora_normalizada = _validar_hora(valor_hora)
+        data_valida = _validar_data(valor_data)
+        hora_valida = _validar_hora(valor_hora)
         if data_valida and hora_valida:
-            return True, "", f"{data_normalizada} {hora_normalizada}"
+            return True
     except ValueError:
         pass
-    return False, "data_hora invalida", valor
+    return False
 
 
-def _validar_cpf(valor: str) -> tuple[bool, str, str]:
+def _validar_cpf(valor: str) -> bool:
     def calcular_digito(cpf_parcial: str) -> int:
         soma = sum(
             int(digito) * peso
@@ -90,9 +82,7 @@ def _validar_cpf(valor: str) -> tuple[bool, str, str]:
 
     cpf = "".join(filter(str.isdigit, valor))
     if len(cpf) != 11 or len(set(cpf)) == 1:
-        return False, "cpf invalido", valor
+        return False
     digito1 = calcular_digito(cpf[:9])
     digito2 = calcular_digito(cpf[:10])
-    if int(cpf[9]) == digito1 and int(cpf[10]) == digito2:
-        return True, "", f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
-    return False, "cpf invalido", valor
+    return int(cpf[9]) == digito1 and int(cpf[10]) == digito2

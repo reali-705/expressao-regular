@@ -14,9 +14,6 @@ def extrair_ocorrencias(arquivos: dict[str, ArquivoLido]) -> list[OcorrenciaExtr
             valor=match.group(0),
             arquivo=nome_arquivo,
             linha=numero_linha,
-            inicio=match.start(),
-            fim=match.end(),
-            contexto=linha,
         )
         for nome_arquivo, arquivo in arquivos.items()
         for numero_linha, linha in enumerate(arquivo.linhas, start=1)

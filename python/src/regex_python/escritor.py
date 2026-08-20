@@ -55,16 +55,10 @@ def _normalizar_para_json(valor: Any) -> Any:
     if isinstance(valor, dict):
         valor_dict = cast(dict[Any, Any], valor)
         return {
-            _normalizar_chave_json(chave): _normalizar_para_json(item)
+            _normalizar_para_json(chave): _normalizar_para_json(item)
             for chave, item in valor_dict.items()
         }
     if isinstance(valor, (list, tuple, set)):
         valor_iteravel = cast(list[Any] | tuple[Any, ...] | set[Any], valor)
         return [_normalizar_para_json(item) for item in valor_iteravel]
     return valor
-
-
-def _normalizar_chave_json(chave: Any) -> str:
-    if isinstance(chave, Enum):
-        return str(chave.value)
-    return str(chave)
